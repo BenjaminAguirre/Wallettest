@@ -1,6 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
-import registerRouter from "./routes/autenticacion"
+import registerRouter from "./routes/akashRoutes"
 
 const app = express();
 
