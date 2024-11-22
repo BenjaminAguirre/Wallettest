@@ -13,7 +13,6 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@runonflux/utxo-lib": "^1.0.0",
     "@types/bchaddrjs": "^0.4.3",
     "@types/bip32": "^1.0.2",
     "@types/bitcoinjs-lib": "^4.0.1",
@@ -31,8 +30,8 @@
     "@cosmjs/stargate": "^0.32.4",
     "@cosmos-client/core": "^0.47.4",
     "@runonflux/aa-schnorr-multisig-sdk": "^1.0.4",
-    "@runonflux/bitgo-utxo-lib": "^9.37.3",
     "@runonflux/flux-sdk": "^1.0.3",
+    "@runonflux/utxo-lib": "^1.0.0",
     "@scure/bip32": "^1.5.0",
     "@scure/bip39": "^1.4.0",
     "bchaddrjs": "^0.5.2",
@@ -45,6 +44,7 @@
     "express": "4.21.1",
     "localforage": "^1.10.0",
     "rimraf": "^6.0.1",
+    "ssp-wallet": "git+https://github.com/RunOnFlux/ssp-wallet.git",
     "tiny-secp256k1": "^2.2.3"
   }
 }

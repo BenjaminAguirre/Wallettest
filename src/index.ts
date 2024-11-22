@@ -1,6 +1,8 @@
 import express from "express";
 import bodyParser from "body-parser";
 import registerRouter from "./routes/akashRoutes"
+import fluxRouter from "./routes/fluxRoutes"
+
 
 const app = express();
 
@@ -15,6 +17,7 @@ app.get("/ping", (_req, res) => {
 })
 
 app.use("/api", registerRouter);
+app.use("/flux", fluxRouter);
 
 app.listen(PORT, () => {
     console.log("Server running on port", PORT);
