@@ -1,4 +1,4 @@
-import { backends } from './backends';
+// import { backends } from './backends';
 
 
 const flux = {
@@ -7,7 +7,7 @@ const flux = {
     name: 'Flux',
     symbol: 'FLUX',
     decimals: 8,
-    node: backends().flux.node,
+    // node: backends().flux.node,
     slip: 19167,
     scriptType: 'p2sh',
     messagePrefix: '\u0018Zelcash Signed Message:\n',
@@ -36,7 +36,7 @@ const flux = {
     name: 'Testnet Flux',
     symbol: 'TEST-FLUX',
     decimals: 8,
-    node: backends().fluxTestnet.node,
+    // node: backends().fluxTestnet.node,
     slip: 1, // all testnets have 1
     scriptType: 'p2sh',
     messagePrefix: '\u0018Zelcash Signed Message:\n',
@@ -60,7 +60,37 @@ const flux = {
   };
 
 
-  export const blockchains = {
-    flux,
-    fluxTestnet,
-  };
+  export interface FluxNetwork {
+    id: string;
+    libid: string;
+    name: string;
+    symbol: string;
+    decimals: number;
+    node: string;
+    slip: number;
+    scriptType: string;
+    messagePrefix: string;
+    pubKeyHash: string;
+    scriptHash: string;
+    wif: string;
+    bip32: {
+      public: number;
+      private: number;
+    };
+    txVersion: number;
+    txGroupID: number;
+    backend: string;
+    dustLimit: number;
+    minFeePerByte: number;
+    feePerByte: number;
+    maxMessage: number;
+    maxTxSize: number;
+    rbf: boolean;
+    txExpiryHeight: number;
+  }
+
+  // Configuración centralizada de Flux
+  export const fluxNetwork = {
+    mainnet: flux,
+    testnet: fluxTestnet
+  } as const;
