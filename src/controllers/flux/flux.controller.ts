@@ -2,10 +2,10 @@ import {
     mkPrivKey,
     privKeyToPubKey,
     pubKeyToAddr
-} from "../../lib/wallet";
+} from "../../lib/flux/wallet";
 
 
-export const createPrivKey = async (_req: any, res: any) =>{
+const createPrivKey = async (_req: any, res: any) =>{
     try {
         const username = _req.body.username;
         const password = _req.body.password;
@@ -27,3 +27,8 @@ export const createPrivKey = async (_req: any, res: any) =>{
         res.status(560).send(error);
     }
 }
+
+
+export{
+    createPrivKey
+};

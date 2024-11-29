@@ -1,10 +1,10 @@
 import express from "express";
-import { createWallet } from "../controllers/flux/flux.controller";
+import { createPrivKey } from "../controllers/flux/flux.controller";
 
 
 const router = express.Router()
 
-router.post("/createWallet", createWallet)
+router.post("/createWallet", createPrivKey)
 
 
 export default router

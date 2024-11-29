@@ -1,14 +1,11 @@
 import express from "express";
 import { 
-  generateDirectWallet,
   generateWallet,
-  validateWallet 
-} from "../controllers/akash/register.controller";
+} from "../controllers/akash/akash.controller";
 
 const router = express.Router();
 
-router.get("/registerdirect", generateDirectWallet);
-router.get("/register", generateWallet);
-router.post("/validate", validateWallet);
+router.post("/createWallet", generateWallet);
+
 
 export default router;

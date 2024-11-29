@@ -43,12 +43,14 @@ function privKeyToPubKey(privKey: String, toCompressed?: boolean): string {
   }
 
 /*
- * Converts public key  to zelcash address
+ * Converts public key to zelcash address
  * @param {String} pubKey (public key)
- * @param {String} pubKeyHash (public key hash (optional, else use defaul))
- * @return {Sting} zelcash address
+ * @param {String} pubKeyHash (public key hash (optional, else use default))
+ * @return {String} zelcash address
  */
-function pubKeyToAddr(pubKey: String): string {
+
+
+function pubKeyToAddr(pubKey: any): string {
     // Si no se proporciona pubKeyHash, se utiliza el valor por defecto de config.mainnet.pubKeyHash
     const pubKeyHash = config.mainnet.pubKeyHash;
     console.log("hola");
@@ -67,6 +69,11 @@ function pubKeyToAddr(pubKey: String): string {
     // Verifica si pubKey es una cadena válida
     if (typeof pubKey !== 'string' || pubKey.trim() === '') {
         throw new Error('Invalid pubKey: pubKey must be a non-empty string.');
+    }
+
+    // Ensure pubKey is a valid string or array
+    if (typeof pubKey !== 'string' && !Array.isArray(pubKey)) {
+        throw new Error('Invalid pubKey: pubKey must be a string or an array of numbers.');
     }
 
     const buffer = Buffer.from(pubKey, "hex");
