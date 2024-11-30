@@ -200,9 +200,8 @@ export class DirectSecp256k1HdWallet implements OfflineDirectSigner {
 
   public async getAccounts(): Promise<readonly AccountData[]> {
     const accountsWithPrivkeys = await this.getAccountsWithPrivkeys();
-    return accountsWithPrivkeys.map(({ algo, privkey, pubkey, address }) => ({
+    return accountsWithPrivkeys.map(({ algo, pubkey, address, }) => ({
       algo: algo,
-      privKey: privkey,
       pubkey: pubkey,
       address: address,
     }));
