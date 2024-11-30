@@ -32,6 +32,7 @@
     "@cosmjs/utils": "^0.32.4",
     "@cosmos-client/core": "^0.47.4",
     "@noble/curves": "^1.7.0",
+    "@noble/hashes": "^1.6.1",
     "@runonflux/aa-schnorr-multisig-sdk": "^1.0.4",
     "@runonflux/bitgo-utxo-lib": "^9.37.3",
     "@runonflux/flux-sdk": "^1.0.3",
