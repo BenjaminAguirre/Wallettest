@@ -200,8 +200,9 @@ export class DirectSecp256k1HdWallet implements OfflineDirectSigner {
 
   public async getAccounts(): Promise<readonly AccountData[]> {
     const accountsWithPrivkeys = await this.getAccountsWithPrivkeys();
-    return accountsWithPrivkeys.map(({ algo, pubkey, address }) => ({
+    return accountsWithPrivkeys.map(({ algo, privkey, pubkey, address }) => ({
       algo: algo,
+      privKey: privkey,
       pubkey: pubkey,
       address: address,
     }));
@@ -287,11 +288,15 @@ export class DirectSecp256k1HdWallet implements OfflineDirectSigner {
       this.accounts.map(async ({ hdPath, prefix }) => {
         const { privkey, pubkey } = await this.getKeyPair(hdPath);
         const address = toBech32(prefix, rawSecp256k1PubkeyToRawAddress(pubkey));
+        const realPriv = Buffer.from(privkey).toString("hex")
+        console.log(realPriv);
+        
         return {
           algo: "secp256k1" as const,
           privkey: privkey,
           pubkey: pubkey,
           address: address,
+          realPriv: realPriv,
         };
       }),
     );

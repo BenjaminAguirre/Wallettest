@@ -7,14 +7,13 @@ export async function generateWallet(_req: any, res: any) {
         const password = _req.body.password
         const prefix = "akash"
     
-        const mnemonic = username + password;
-        console.log(mnemonic);    
+        const mnemonic = username + password;   
 
         const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, prefix)
         console.log(wallet);
+        const accountWithPrivKeys = await wallet.getAccounts();
         
-
-        res.status(200).send(wallet)
+        res.status(200).send(accountWithPrivKeys)
     } catch (error) {
         console.error(`Error en generar wallet: ${error}`);
         return res.status(500).send('Error en la creación de la billetera');
