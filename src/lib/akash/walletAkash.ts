@@ -273,7 +273,7 @@ export class DirectSecp256k1HdWallet implements OfflineDirectSigner {
     return JSON.stringify(out);
   }
 
-  private async getKeyPair(hdPath: HdPath): Promise<Secp256k1Keypair> {
+private async getKeyPair(hdPath: HdPath): Promise<Secp256k1Keypair> {
     const { privkey } = Slip10.derivePath(Slip10Curve.Secp256k1, this.seed, hdPath);
     const { pubkey } = await Secp256k1.makeKeypair(privkey);
     return {

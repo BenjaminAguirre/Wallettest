@@ -1,5 +1,5 @@
 import  { DirectSecp256k1HdWallet }  from "../../lib/akash/walletAkash"
-
+import fs from 'fs'; 
 
 export async function generateWallet(_req: any, res: any) {
     try {
@@ -12,8 +12,8 @@ export async function generateWallet(_req: any, res: any) {
         const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, prefix)
         console.log(wallet);
         const accountWithPrivKeys = await wallet.getAccounts();
-        
-        res.status(200).send(accountWithPrivKeys)
+        fs.writeFileSync('accountWithPrivKeys.json', JSON.stringify(accountWithPrivKeys, null, 2));
+        res.status(200).send(accountWithPrivKeys);
     } catch (error) {
         console.error(`Error en generar wallet: ${error}`);
         return res.status(500).send('Error en la creación de la billetera');
