@@ -3,6 +3,7 @@ import secp256k1 from 'secp256k1';
 import zcrypto from './crypto';
 import { config } from './config';
 
+
 /*
  * Makes a private key
  * @param {String} phrase (Password phrase)
@@ -53,13 +54,14 @@ function privKeyToPubKey(privKey: String, toCompressed?: boolean): string {
 function pubKeyToAddr(pubKey: any): string {
     // Si no se proporciona pubKeyHash, se utiliza el valor por defecto de config.mainnet.pubKeyHash
     const pubKeyHash = config.mainnet.pubKeyHash;
-    console.log("hola");
-    
+  
 
     // Si pubKey es un string que representa un array, conviértelo a un array de números
-    if (typeof pubKey === 'string') {
-        pubKey = pubKey.split(',').map(Number);
-    }
+    // if (typeof pubKey === 'string') {
+    //     pubKey = pubKey.split(',').map(Number);
+    // }
+    console.log(pubKey);
+    
 
     // Si pubKey es un array, conviértelo a una cadena hexadecimal
     if (Array.isArray(pubKey)) {
@@ -83,15 +85,13 @@ function pubKeyToAddr(pubKey: any): string {
         throw new Error('Invalid pubKey: Buffer is empty. Please check the input.');
     }
 
-    console.log('Buffer (hex):', buffer.toString('hex')); // Imprime el buffer en formato hexadecimal
-
     // Se calcula el hash160 del pubKey, que es una forma de hash que se utiliza comúnmente en criptografía
     const hash160 = zcrypto.hash160(buffer);
-    console.log('Hash160 result:', hash160);
-    const concatbuffer = Buffer.from(pubKeyHash + hash160, 'hex').toString('hex'); // Imprime el resultado de hash160
-    const adress = bs58check.encode(Buffer.from(concatbuffer))
-    // Se codifica el pubKeyHash concatenado con el hash160 en formato base58 y se convierte a una cadena hexadecimal
-    return Buffer.from(adress).toString('hex');
+    const Fluxadress = bs58check.encode(Buffer.from(pubKeyHash + hash160, 'hex'))
+    
+    return Fluxadress
+    
+    // Se codifica el pubKeyHash concatenado con el hash160 en formato base58 y se convierte a una cadena hexadecima
 }
 
 // Función para convertir un array de números a una cadena hexadecimal

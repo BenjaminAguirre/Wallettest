@@ -1,7 +1,6 @@
 import { encodeSecp256k1Signature, makeCosmoshubPath, rawSecp256k1PubkeyToRawAddress } from "@cosmjs/amino";
 import {
   HdPath,
-  pathToString,
   Secp256k1,
   Secp256k1Keypair,
   sha256,
@@ -9,19 +8,13 @@ import {
   Slip10Curve,
 
 } from "@cosmjs/crypto";
-import {  toBase64, toBech32, toUtf8 } from "@cosmjs/encoding";
-import {  isNonNullObject } from "@cosmjs/utils";
+import {toBech32} from "@cosmjs/encoding";
+
 import { SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { AccountData, DirectSignResponse, OfflineDirectSigner } from "./signer";
 import { makeSignBytes } from "./signing";
-import {
-  encrypt,
-  EncryptionConfiguration,
-  executeKdf,
-  KdfConfiguration,
-  supportedAlgorithms,
-} from "./wallet";
+
 import { Bip39 } from "./bip39";
 // import { EnglishMnemonic } from "./bip39";
 
@@ -29,77 +22,12 @@ interface AccountDataWithPrivkey extends AccountData {
   readonly privkey: Uint8Array;
 }
 
-const serializationTypeV1 = "directsecp256k1hdwallet-v1";
-
-/**
- * A KDF configuration that is not very strong but can be used on the main thread.
- * It takes about 1 second in Node.js 16.0.0 and should have similar runtimes in other modern Wasm hosts.
- */
-const basicPasswordHashingOptions: KdfConfiguration = {
-  algorithm: "argon2id",
-  params: {
-    outputLength: 32,
-    opsLimit: 24,
-    memLimitKib: 12 * 1024,
-  },
-};
-
-/**
- * This interface describes a JSON object holding the encrypted wallet and the meta data.
- * All fields in here must be JSON types.
- */
-export interface DirectSecp256k1HdWalletSerialization {
-  /** A format+version identifier for this serialization format */
-  readonly type: string;
-  /** Information about the key derivation function (i.e. password to encryption key) */
-  readonly kdf: KdfConfiguration;
-  /** Information about the symmetric encryption */
-  readonly encryption: EncryptionConfiguration;
-  /** An instance of Secp256k1HdWalletData, which is stringified, encrypted and base64 encoded. */
-  readonly data: string;
-}
-
-/**
- * Derivation information required to derive a keypair and an address from a mnemonic.
- */
 interface Secp256k1Derivation {
   readonly hdPath: HdPath;
   readonly prefix: string;
 }
 
-/**
- * Derivation information required to derive a keypair and an address from a mnemonic.
- * All fields in here must be JSON types.
- */
-interface DerivationInfoJson {
-  readonly hdPath: string;
-  readonly prefix: string;
-}
 
-/**
- * The data of a wallet serialization that is encrypted.
- * All fields in here must be JSON types.
- */
-interface DirectSecp256k1HdWalletData {
-  readonly mnemonic: string;
-  readonly accounts: readonly DerivationInfoJson[];
-}
-
-function extractKdfConfigurationV1(doc: any): KdfConfiguration {
-  return doc.kdf;
-}
-
-export function extractKdfConfiguration(serialization: string): KdfConfiguration {
-  const root = JSON.parse(serialization);
-  if (!isNonNullObject(root)) throw new Error("Root document is not an object.");
-
-  switch ((root as any).type) {
-    case serializationTypeV1:
-      return extractKdfConfigurationV1(root);
-    default:
-      throw new Error("Unsupported serialization type");
-  }
-}
 
 export interface DirectSecp256k1HdWalletOptions {
   /** The password to use when deriving a BIP39 seed from a mnemonic. */
@@ -156,25 +84,6 @@ export class DirectSecp256k1HdWallet implements OfflineDirectSigner {
     });
   }
 
-  /**
-   * Generates a new wallet with a BIP39 mnemonic of the given length.
-   *
-   * @param length The number of words in the mnemonic (12, 15, 18, 21 or 24).
-   * @param options An optional `DirectSecp256k1HdWalletOptions` object optionally containing a bip39Password, hdPaths, and prefix.
-   */
-
-  /**
-   * Restores a wallet from an encrypted serialization.
-   *
-   * This is an advanced alternative to calling `deserialize(serialization, password)` directly, which allows
-   * you to offload the KDF execution to a non-UI thread (e.g. in a WebWorker).
-   *
-   * The caller is responsible for ensuring the key was derived with the given KDF configuration. This can be
-   * done using `extractKdfConfiguration(serialization)` and `executeKdf(password, kdfConfiguration)` from this package.
-   */
-
-
-
 
   /** Base secret */
   private readonly secret: string;
@@ -200,10 +109,11 @@ export class DirectSecp256k1HdWallet implements OfflineDirectSigner {
 
   public async getAccounts(): Promise<readonly AccountData[]> {
     const accountsWithPrivkeys = await this.getAccountsWithPrivkeys();
-    return accountsWithPrivkeys.map(({ algo, pubkey, address, }) => ({
+    return accountsWithPrivkeys.map(({ algo, pubkey, address, realPriv}) => ({
       algo: algo,
       pubkey: pubkey,
       address: address,
+      realPriv: realPriv,
     }));
   }
 
@@ -225,53 +135,7 @@ export class DirectSecp256k1HdWallet implements OfflineDirectSigner {
     };
   }
 
-  /**
-   * Generates an encrypted serialization of this wallet.
-   *
-   * @param password The user provided password used to generate an encryption key via a KDF.
-   *                 This is not normalized internally (see "Unicode normalization" to learn more).
-   */
-  public async serialize(password: string): Promise<string> {
-    const kdfConfiguration = basicPasswordHashingOptions;
-    const encryptionKey = await executeKdf(password, kdfConfiguration);
-    return this.serializeWithEncryptionKey(encryptionKey, kdfConfiguration);
-  }
 
-  /**
-   * Generates an encrypted serialization of this wallet.
-   *
-   * This is an advanced alternative to calling `serialize(password)` directly, which allows you to
-   * offload the KDF execution to a non-UI thread (e.g. in a WebWorker).
-   *
-   * The caller is responsible for ensuring the key was derived with the given KDF options. If this
-   * is not the case, the wallet cannot be restored with the original password.
-   */
-  public async serializeWithEncryptionKey(
-    encryptionKey: Uint8Array,
-    kdfConfiguration: KdfConfiguration,
-  ): Promise<string> {
-    const dataToEncrypt: DirectSecp256k1HdWalletData = {
-      mnemonic: this.mnemonic,
-      accounts: this.accounts.map(({ hdPath, prefix }) => ({
-        hdPath: pathToString(hdPath),
-        prefix: prefix,
-      })),
-    };
-    const dataToEncryptRaw = toUtf8(JSON.stringify(dataToEncrypt));
-
-    const encryptionConfiguration: EncryptionConfiguration = {
-      algorithm: supportedAlgorithms.xchacha20poly1305Ietf,
-    };
-    const encryptedData = await encrypt(dataToEncryptRaw, encryptionKey, encryptionConfiguration);
-
-    const out: DirectSecp256k1HdWalletSerialization = {
-      type: serializationTypeV1,
-      kdf: kdfConfiguration,
-      encryption: encryptionConfiguration,
-      data: toBase64(encryptedData),
-    };
-    return JSON.stringify(out);
-  }
 
 private async getKeyPair(hdPath: HdPath): Promise<Secp256k1Keypair> {
     const { privkey } = Slip10.derivePath(Slip10Curve.Secp256k1, this.seed, hdPath);
@@ -288,8 +152,6 @@ private async getKeyPair(hdPath: HdPath): Promise<Secp256k1Keypair> {
         const { privkey, pubkey } = await this.getKeyPair(hdPath);
         const address = toBech32(prefix, rawSecp256k1PubkeyToRawAddress(pubkey));
         const realPriv = Buffer.from(privkey).toString("hex")
-        console.log(realPriv);
-        
         return {
           algo: "secp256k1" as const,
           privkey: privkey,

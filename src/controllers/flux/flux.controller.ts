@@ -17,6 +17,7 @@ const createPrivKey = async (_req: any, res: any) =>{
         const pubKey = await privKeyToPubKey(privKey, compressed)
         const addr = await pubKeyToAddr(pubKey);
         
+        
         res.status(200).send({
             status: "succeed",
             privateKey: privKey,

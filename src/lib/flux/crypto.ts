@@ -21,11 +21,8 @@ export function hash160(buffer: Buffer) {
   if (!Buffer.isBuffer(buffer)) {
     throw new TypeError('Expected a buffer');
   }
-  console.log('Input buffer:', buffer);
   const sha = sha256(buffer);
-  console.log('SHA256 result:', sha);
   const hash160 = ripemd160(Buffer.from(sha, 'hex'));
-  console.log('RIPEMD160 result:', hash160);
   return hash160;
 }
 

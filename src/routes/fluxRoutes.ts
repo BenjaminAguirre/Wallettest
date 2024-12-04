@@ -4,7 +4,7 @@ import { createPrivKey } from "../controllers/flux/flux.controller";
 
 const router = express.Router()
 
-router.post("/createWallet", createPrivKey)
+router.post("/createFlux", createPrivKey)
 
 
 export default router
