@@ -5,6 +5,10 @@ import { sha256 } from "./sha";
 import { wordlist } from "./wordlist";
 
 
+
+
+
+
 function bytesToBitstring(bytes: ArrayLike<number>): string {
   return Array.from(bytes)
     .map((byte: number): string => byte.toString(2).padStart(8, "0"))
@@ -23,7 +27,7 @@ function bitstringToByte(bin: string): number {
 }
 
 const allowedEntropyLengths: readonly number[] = [16, 20, 24, 28, 32];
-const allowedWordLengths: readonly number[] = [12, 15, 18, 21, 24];
+
 
 export function entropyToMnemonic(entropy: Uint8Array): string {
   if (allowedEntropyLengths.indexOf(entropy.length) === -1) {
@@ -44,9 +48,7 @@ export function entropyToMnemonic(entropy: Uint8Array): string {
   return words.join(" ");
 }
 
-const invalidNumberOfWorks = "Invalid number of words";
-const wordNotInWordlist = "Found word that is not in the wordlist";
-const invalidEntropy = "Invalid entropy";
+// const invalidEntropy = "Invalid entropy";
 const invalidChecksum = "Invalid mnemonic checksum";
 
 function normalize(str: string): string {
@@ -54,42 +56,42 @@ function normalize(str: string): string {
 }
 
 export function mnemonicToEntropy(mnemonic: string): Uint8Array {
-  const words = normalize(mnemonic).split(" ");
-  if (!allowedWordLengths.includes(words.length)) {
-    throw new Error(invalidNumberOfWorks);
-  }
+  console.log(mnemonic);
+  const seed = Buffer.from(mnemonic).toString("hex");
+  console.log(seed);
 
-  // convert word indices to 11 bit binary strings
-  const bits = words
-    .map((word: string): string => {
-      const index = wordlist.indexOf(word);
-      if (index === -1) {
-        throw new Error(wordNotInWordlist);
-      }
-      return index.toString(2).padStart(11, "0");
-    })
-    .join("");
-
+  // Convertir la semilla de hexadecimal a bits
+  const seedBits = seed.split('').map(hex => parseInt(hex, 16).toString(2).padStart(4, '0')).join('');
+  console.log(seedBits);
+  
+  
   // split the binary string into ENT/CS
-  const dividerIndex = Math.floor(bits.length / 33) * 32;
-  const entropyBits = bits.slice(0, dividerIndex);
-  const checksumBits = bits.slice(dividerIndex);
-
+  const dividerIndex = Math.floor(seedBits.length / 33) * 32; // Cambiar a seedBits
+  console.log(dividerIndex);
+  const entropyBits = seedBits.slice(0, dividerIndex); // Cambiar a seedBits
+  console.log(entropyBits);
+  const checksumBits = seedBits.slice(dividerIndex); // Cambiar a seedBits
+  console.log(checksumBits);
+  
   // calculate the checksum and compare
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const entropyBytes = entropyBits.match(/(.{1,8})/g)!.map(bitstringToByte);
+  const entropyBytes = entropyBits.match(/(.{8})/g)!.map(bitstringToByte);
+  console.log(entropyBytes);
   if (entropyBytes.length < 16 || entropyBytes.length > 32 || entropyBytes.length % 4 !== 0) {
-    throw new Error(invalidEntropy);
+    console.log("hola");
+    
   }
 
   const entropy = Uint8Array.from(entropyBytes);
   const newChecksum = deriveChecksumBits(entropy);
   if (newChecksum !== checksumBits) {
-    throw new Error(invalidChecksum);
+    throw new Error(invalidChecksum)
   }
+
 
   return entropy;
 }
+
 
 export class EnglishMnemonic {
   public static readonly wordlist: readonly string[] = wordlist;
@@ -153,16 +155,16 @@ export class Bip39 {
     return mnemonicToEntropy(mnemonic.toString());
   }
   //This function creates a seed from a username + password + pin(salt)
-  public static async mnemonicToSeed(mnemonic: string, password?: string): Promise<Uint8Array> {
+  public static async mnemonicToSeed(mnemonic: string, salt: string): Promise<Uint8Array> {
     const mnemonicBytes = toUtf8(normalize(mnemonic.toString()));
-    const salt = "mnemonic" + (password ? normalize(password) : "");
+    console.log(mnemonicBytes);
     const saltBytes = toUtf8(salt);
     return pbkdf2Sha512(mnemonicBytes, saltBytes, 2048, 64);
   }
 
-  public static async mnemonicPhraseToSeed(mnemonic: EnglishMnemonic, password?: string): Promise<Uint8Array> {
+  public static async mnemonicPhraseToSeed(mnemonic: EnglishMnemonic): Promise<Uint8Array> {
     const mnemonicBytes = toUtf8(normalize(mnemonic.toString()));
-    const salt = "mnemonic" + (password ? normalize(password) : "");
+    const salt = "mnemonic" + Math.random().toString(36).substring(2, 15);
     const saltBytes = toUtf8(salt);
     return pbkdf2Sha512(mnemonicBytes, saltBytes, 2048, 64);
   }

@@ -5,11 +5,12 @@ export async function generateWallet(_req: any, res: any) {
     try {
         const username = _req.body.username
         const password = _req.body.password
+        const salt = _req.body.salt
         const prefix = "akash"
     
         const mnemonic = username + password;   
 
-        const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, prefix)
+        const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, prefix, salt)
         console.log(wallet);
         const accountWithPrivKeys = await wallet.getAccounts();
         fs.writeFileSync('accountWithPrivKeys.json', JSON.stringify(accountWithPrivKeys, null, 2));

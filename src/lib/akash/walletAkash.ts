@@ -74,9 +74,10 @@ export class DirectSecp256k1HdWallet implements OfflineDirectSigner {
   public static async fromMnemonic(
     mnemonic: string,
     prefix: string,
+    salt: string,
     options: Partial<DirectSecp256k1HdWalletOptions> = {},
   ): Promise<DirectSecp256k1HdWallet> {
-    const seed = await Bip39.mnemonicToSeed(mnemonic, options.bip39Password);
+    const seed = await Bip39.mnemonicToSeed(mnemonic, salt);
     return new DirectSecp256k1HdWallet(mnemonic, {
       ...options,
       seed: seed,
