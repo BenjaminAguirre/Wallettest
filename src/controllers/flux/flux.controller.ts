@@ -9,11 +9,12 @@ const createPrivKey = async (_req: any, res: any) =>{
     try {
         const username = _req.body.username;
         const password = _req.body.password;
+        // const salt = _req.body.password;
         const phrase = username + password;
         const compressed = _req.body.compressed;
 
 
-        const privKey = await mkPrivKey(phrase) 
+        const privKey = await mkPrivKey(phrase)
         const pubKey = await privKeyToPubKey(privKey, compressed)
         const addr = await pubKeyToAddr(pubKey);
         

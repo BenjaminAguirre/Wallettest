@@ -48,6 +48,8 @@ const validateAccounts = async(_req: any, res:any)=>{
         const mnemonic = username + password + salt;
 
         const bits = await mnemonicToEntropy(mnemonic)
+        console.log(bits);
+        
         
         res.status(200).send(bits)
     } catch (error) {

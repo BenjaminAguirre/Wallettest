@@ -45,7 +45,7 @@ interface DirectSecp256k1HdWalletConstructorOptions extends Partial<DirectSecp25
 const defaultOptions: DirectSecp256k1HdWalletOptions = {
   bip39Password: "",
   hdPaths: [makeCosmoshubPath(0)],
-  prefix: "cosmos",
+  prefix: "",
 };
 
 /** A wallet for protobuf based signing using SIGN_MODE_DIRECT */
@@ -139,6 +139,7 @@ export class DirectSecp256k1HdWallet implements OfflineDirectSigner {
 
 
 private async getKeyPair(hdPath: HdPath): Promise<Secp256k1Keypair> {
+    console.log(hdPath);
     const { privkey } = Slip10.derivePath(Slip10Curve.Secp256k1, this.seed, hdPath);
     const { pubkey } = await Secp256k1.makeKeypair(privkey);
     return {
@@ -146,6 +147,7 @@ private async getKeyPair(hdPath: HdPath): Promise<Secp256k1Keypair> {
       pubkey: Secp256k1.compressPubkey(pubkey),
     };
   }
+
 
   private async getAccountsWithPrivkeys(): Promise<readonly AccountDataWithPrivkey[]> {
     return Promise.all(
@@ -164,3 +166,5 @@ private async getKeyPair(hdPath: HdPath): Promise<Secp256k1Keypair> {
     );
   }
 }
+// 786777a92d8c0c7386b8610dd4f072a1c5447f9d4e010ca323a3e364ebabbd99
+// 8d088b06f781b325a82e140753b10a2086486f5e60008bbb2dd0d77821a07f5c 

@@ -56,13 +56,11 @@ function normalize(str: string): string {
 }
 
 export function mnemonicToEntropy(mnemonic: string): Uint8Array {
-  console.log(mnemonic);
   const seed = Buffer.from(mnemonic).toString("hex");
   console.log(seed);
 
   // Convertir la semilla de hexadecimal a bits
   const seedBits = seed.split('').map(hex => parseInt(hex, 16).toString(2).padStart(4, '0')).join('');
-  console.log(seedBits);
   
   
   // split the binary string into ENT/CS
@@ -76,7 +74,6 @@ export function mnemonicToEntropy(mnemonic: string): Uint8Array {
   // calculate the checksum and compare
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const entropyBytes = entropyBits.match(/(.{8})/g)!.map(bitstringToByte);
-  console.log(entropyBytes);
   if (entropyBytes.length < 16 || entropyBytes.length > 32 || entropyBytes.length % 4 !== 0) {
     console.log("hola");
     
@@ -87,7 +84,6 @@ export function mnemonicToEntropy(mnemonic: string): Uint8Array {
   if (newChecksum !== checksumBits) {
     throw new Error(invalidChecksum)
   }
-
 
   return entropy;
 }
@@ -157,8 +153,8 @@ export class Bip39 {
   //This function creates a seed from a username + password + pin(salt)
   public static async mnemonicToSeed(mnemonic: string, salt: string): Promise<Uint8Array> {
     const mnemonicBytes = toUtf8(normalize(mnemonic.toString()));
-    console.log(mnemonicBytes);
-    const saltBytes = toUtf8(salt);
+    const sal = "mnemonic" + salt;
+    const saltBytes = toUtf8(sal);
     return pbkdf2Sha512(mnemonicBytes, saltBytes, 2048, 64);
   }
 
@@ -166,6 +162,10 @@ export class Bip39 {
     const mnemonicBytes = toUtf8(normalize(mnemonic.toString()));
     const salt = "mnemonic" + Math.random().toString(36).substring(2, 15);
     const saltBytes = toUtf8(salt);
+    const example = pbkdf2Sha512(mnemonicBytes, saltBytes, 2048, 64)
+    console.log(example);
+    
+    
     return pbkdf2Sha512(mnemonicBytes, saltBytes, 2048, 64);
   }
 }
