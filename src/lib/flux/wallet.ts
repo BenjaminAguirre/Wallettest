@@ -2,6 +2,7 @@ import bs58check from 'bs58check';
 import secp256k1 from 'secp256k1';
 import zcrypto from './crypto';
 import { config } from './config';
+import { createHash } from 'crypto';
 
 
 /*
@@ -99,9 +100,36 @@ function arrayToHex(arr: number[]): string {
     return arr.map(num => num.toString(16).padStart(2, '0')).join('');
 }
 
+
+async function generateCheckValue(phrase: string): Promise<string> {
+  // Generar la clave privada a partir de la frase
+  const privkey = mkPrivKey(phrase);
+  console.log(privkey);
+  // Generar un hash de la clave privada
+  const hash = createHash('sha256').update(privkey).digest();
+  console.log(hash);
+  
+
+  // Convertir el hash a Uint8Array y truncar a 4 bytes
+  const truncated = new Uint8Array(hash).slice(0, 4);
+  console.log(truncated);
+  const checkValue = Buffer.from(truncated).toString('base64url'); // Asegúrate de tener una función para Base64URL
+
+  return checkValue;
+} 
+
+// Función para validar la clave privada
+async function validatePrivKey(phrase: string, expectedCheckValue: string): Promise<boolean> {
+  const checkValue = await generateCheckValue(phrase);
+  
+  return checkValue === expectedCheckValue;
+}
+
 export {
   mkPrivKey,
   privKeyToWIF,
   privKeyToPubKey,
   pubKeyToAddr,
+  validatePrivKey,
+  generateCheckValue,
 };
