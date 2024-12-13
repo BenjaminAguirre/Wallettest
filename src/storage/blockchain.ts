@@ -58,7 +58,7 @@ const flux = {
     rbf: false,
     txExpiryHeight: 30, // 30 blocks, 1 hour
   };
-
+  
 
   export interface FluxNetwork {
     id: string;
