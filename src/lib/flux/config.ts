@@ -30,3 +30,31 @@ export const config = {
         txExpiryHeight: 30,
     } // 30 blocks, 1 hour
 };
+export const btc = {
+    id: 'btc',
+    libid: 'bitcoin',
+    name: 'Bitcoin',
+    symbol: 'BTC',
+    decimals: 8,
+    // node: backends().btc.node,
+    slip: 0,
+    scriptType: 'p2wsh',
+    messagePrefix: '\u0018Bitcoin Signed Message:\n',
+    pubKeyHash: '00',
+    scriptHash: '05',
+    wif: '80',
+    // logo: btcLogo,
+    bip32: {
+      public: 0x02aa7ed3,
+      private: 0x02aa7a99,
+    },
+    backend: 'blockbook',
+    bech32: 'bc1',
+    dustLimit: 546, // min utxo amount
+    minFeePerByte: 1, // min fee per byte
+    feePerByte: 100, // fee per byte
+    maxMessage: 80, // 80 bytes in size
+    maxTxSize: 100000, // 100,000 vbytes
+    rbf: true,
+  };
+  

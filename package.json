@@ -13,7 +13,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@runonflux/utxo-lib": "^1.0.0",
+    "@runonflux/utxo-lib": "^1.0.1",
     "@types/bchaddrjs": "^0.4.3",
     "@types/bip32": "^1.0.2",
     "@types/bitcoinjs-lib": "^4.0.1",
