@@ -38,7 +38,7 @@
     "@runonflux/flux-sdk": "^1.0.3",
     "@runonflux/groestl-hash-js": "^1.0.1",
     "@scure/bip32": "^1.5.0",
-    "@scure/bip39": "^1.4.0",
+    "@scure/bip39": "^1.5.0",
     "@types/create-hash": "^1.2.6",
     "@types/secp256k1": "^4.0.6",
     "bchaddrjs": "^0.5.2",

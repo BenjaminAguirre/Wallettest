@@ -1,16 +1,23 @@
 import bs58check from 'bs58check';
 import secp256k1 from 'secp256k1';
 import zcrypto from './crypto';
-<<<<<<< HEAD
-import { config } from './config';
 import { createHash } from 'crypto';
 
-=======
-import { config, btc } from './config';
-import  bitGoUTXO  from "@runonflux/utxo-lib"
->>>>>>> 063b6846528ec95020ddb0e8fa897efa6bfe6ccf
+import { config } from './config';
+import { HDKey } from "@scure/bip32"
 
-bitGoUTXO.ECPair.
+
+interface externalIdentity {
+  privKey: string;
+  pubKey: string;
+  address: string;
+}
+
+interface keyPair {
+  privKey: string;
+  pubKey: string;
+}
+
 /*
  * Makes a private key
  * @param {String} phrase (Password phrase)
@@ -98,25 +105,63 @@ function pubKeyToAddr(pubKey: any): string {
     
     return Fluxadress
     
-    // Se codifica el pubKeyHash concatenado con el hash160 en formato base58 y se convierte a una cadena hexadecima
 }
- function generateExternalIdentityKeypair( // in memory we store just address
+function generateNodeIdentityKeypair(
+  xpriv: string,
+  typeIndex: 1,
+  addressIndex: 0,
+): keyPair {
+  const libID = config.mainnet.libid;
+  const bipParams = config.mainnet.bip32;
+  const networkBipParams = networks[libID].bip32;
+  let externalChain;
+  let network = networks[libID];
+  try {
+    externalChain = HDKey.fromExtendedKey(xpriv, bipParams);
+    network = Object.assign({}, network, {
+      bip32: bipParams,
+    });
+  } catch (e) {
+    console.log(e);
+    externalChain = HDKey.fromExtendedKey(xpriv, networkBipParams);
+  }
+
+  const externalAddress = externalChain
+    .deriveChild(typeIndex)
+    .deriveChild(addressIndex);
+
+  const derivedExternalAddress: minHDKey = HDNode.fromBase58(
+    externalAddress.toJSON().xpriv,
+    network,
+  );
+
+  const privateKeyWIF: string = derivedExternalAddress.keyPair.toWIF();
+
+  const publicKey = derivedExternalAddress.keyPair
+    .getPublicKeyBuffer()
+    .toString('hex');
+
+  return { privKey: privateKeyWIF, pubKey: publicKey };
+}
+
+
+
+function generateExternalIdentityKeypair( // in memory we store just address
   privKey: string,
 ): externalIdentity {
-  const typeIndex = 11; // identity index
+  const typeIndex = 1; // identity index
   const addressIndex = 0; // identity index
   const identityKeypair = generateNodeIdentityKeypair(
     privKey,
     typeIndex,
     addressIndex,
-    btc,
   );
 
   const pubKeyBuffer = Buffer.from(identityKeypair.pubKey, 'hex');
-  const lib = btc.libid;
-  const network = bitGoUTXO.networks[lib];
+  const lib = config.mainnet.libid;
+  const network = networks[lib];
 
-  const genKeypair =  bitGoUTXO.ECPair.fromPublicKeyBuffer(pubKeyBuffer, network);
+  const genKeypair =    ECPair.fromPublicKeyBuffer(pubKeyBuffer, network);
   const address = genKeypair.getAddress();
 
   const externalIdentity = {
@@ -164,4 +209,6 @@ export {
   pubKeyToAddr,
   validatePrivKey,
   generateCheckValue,
+  generateNodeIdentityKeypair,
+  generateExternalIdentityKeypair,
 };
