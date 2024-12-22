@@ -1,11 +1,12 @@
 import express from "express";
-import { createPrivKey, LogIn } from "../controllers/flux/flux.controller";
+import { fluxTest, FluxId } from "../controllers/flux/flux.controller";
 
 
 const router = express.Router()
 
-router.post("/createFlux", createPrivKey)
-router.post("/valiteFlux", LogIn)
+router.post("/createFlux", fluxTest)
+router.post("/createFluxId", FluxId)
+
 
 
 

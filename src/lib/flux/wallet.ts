@@ -1,11 +1,20 @@
 import bs58check from 'bs58check';
 import secp256k1 from 'secp256k1';
 import zcrypto from './crypto';
-import { createHash } from 'crypto';
+// import { createHash } from 'crypto';
+import { Bip39 } from "../akash/bip39";
+import { config, btc } from './config';
+import utxolib, { minHDKey } from '@runonflux/utxo-lib';
+import { HDKey } from "@scure/bip32";
+import * as bitcoin from "bitcoinjs-lib"; // Importing bitcoinjs-lib
+import * as bitcoinMessage from "bitcoinjs-message"; // Importing bitcoinjs-message
 
-import { config } from './config';
-import { HDKey } from "@scure/bip32"
 
+utxolib.
+interface xPrivXpub {
+  xpriv: string;
+  xpub: string;
+}
 
 interface externalIdentity {
   privKey: string;
@@ -18,14 +27,90 @@ interface keyPair {
   pubKey: string;
 }
 
+
+
+function getScriptType(type: string): number {
+  switch (type) {
+    case 'p2sh':
+      return 0;
+    case 'p2sh-p2wsh':
+      return 1;
+    case 'p2wsh':
+      return 2;
+    default:
+      return 0;
+  }
+}
 /*
  * Makes a private key
  * @param {String} phrase (Password phrase)
  * @return {Sting} Private key
  */
-function mkPrivKey(phrase: String) {
+// function mkPrivKey(phrase: String) {
     
-  return zcrypto.sha256(Buffer.from(phrase, 'utf-8'));
+//   return zcrypto.sha256(Buffer.from(phrase, 'utf-8'));
+// }
+
+
+async function generatexPubxPriv(
+  mnemonic: string,
+  bip = 48,
+  coin: number,
+  account = 0,
+  type = 'p2sh',
+): Promise<xPrivXpub> {
+  const flux = config.mainnet;
+  const scriptType = getScriptType(type);
+
+  const seed = await Bip39.mnemonicToSeed(mnemonic);
+  const bipParams = flux.bip32;
+  const masterKey =  HDKey.fromMasterSeed(seed, bipParams);
+  console.log(masterKey);
+  const externalChain = masterKey.derive(
+    `m/${bip}'/${coin}'/${account}'/${scriptType}'`,
+  );
+  return externalChain.toJSON();
+}
+
+
+export function generateAddressKeypair(
+  xpriv: string,
+  typeIndex: 0 | 1,
+  addressIndex: number,
+): keyPair {
+  const chain = config.mainnet
+  const libID = chain.libid;
+  const bipParams = chain.bip32;
+  const networkBipParams = utxolib.networks[libID].bip32;
+  let externalChain;
+  let network = utxolib.networks[libID];
+  try {
+    externalChain = HDKey.fromExtendedKey(xpriv, bipParams);
+    network = Object.assign({}, network, {
+      bip32: bipParams,
+    });
+  } catch (e) {
+    console.log(e);
+    externalChain = HDKey.fromExtendedKey(xpriv, networkBipParams);
+  }
+
+  const externalAddress = externalChain
+    .deriveChild(typeIndex)
+    .deriveChild(addressIndex);
+
+  const derivedExternalAddress: minHDKey = utxolib.HDNode.fromBase58(
+    // to get priv key in wif via lib
+    externalAddress.toJSON().xpriv,
+    network,
+  );
+
+  const privateKeyWIF: string = derivedExternalAddress.keyPair.toWIF();
+
+  const publicKey = derivedExternalAddress.keyPair
+    .getPublicKeyBuffer()
+    .toString('hex'); // same as Buffer.from(externalAddress.pubKey).toString('hex);. Library does not expose keypair from just hex of private key, workaround
+
+  return { privKey: privateKeyWIF, pubKey: publicKey };
 }
 
 /*
@@ -74,7 +159,6 @@ function pubKeyToAddr(pubKey: any): string {
     // if (typeof pubKey === 'string') {
     //     pubKey = pubKey.split(',').map(Number);
     // }
-    console.log(pubKey);
     
 
     // Si pubKey es un array, conviértelo a una cadena hexadecimal
@@ -103,19 +187,49 @@ function pubKeyToAddr(pubKey: any): string {
     const hash160 = zcrypto.hash160(buffer);
     const Fluxadress = bs58check.encode(Buffer.from(pubKeyHash + hash160, 'hex'))
     
-    return Fluxadress
-    
+    return Fluxadress   
 }
+
+
+function generateExternalIdentityKeypair( // in memory we store just address
+  xpriv: string,
+): externalIdentity {
+  const typeIndex = 11; // identity index
+  const addressIndex = 0; // identity index
+  const identityKeypair = generateNodeIdentityKeypair(
+    xpriv,
+    typeIndex,
+    addressIndex,
+  );
+  console.log(identityKeypair);
+
+  const pubKeyBuffer = Buffer.from(identityKeypair.pubKey, 'hex');
+  const libID = btc.libid;
+  const network = utxolib.networks[libID];
+
+  const genKeypair = utxolib.ECPair.fromPublicKeyBuffer(pubKeyBuffer, network);
+  const address = genKeypair.getAddress();
+
+  const externalIdentity = {
+    privKey: identityKeypair.privKey,
+    pubKey: identityKeypair.pubKey,
+    address,
+  };
+  return externalIdentity;
+}
+
+
+
 function generateNodeIdentityKeypair(
   xpriv: string,
-  typeIndex: 1,
-  addressIndex: 0,
+  typeIndex: 11 | 12,
+  addressIndex: number,
 ): keyPair {
-  const libID = config.mainnet.libid;
-  const bipParams = config.mainnet.bip32;
-  const networkBipParams = networks[libID].bip32;
+  const libID = btc.libid;
+  const bipParams = btc.bip32;
+  const networkBipParams = utxolib.networks[libID].bip32;
   let externalChain;
-  let network = networks[libID];
+  let network = utxolib.networks[libID];
   try {
     externalChain = HDKey.fromExtendedKey(xpriv, bipParams);
     network = Object.assign({}, network, {
@@ -130,7 +244,7 @@ function generateNodeIdentityKeypair(
     .deriveChild(typeIndex)
     .deriveChild(addressIndex);
 
-  const derivedExternalAddress: minHDKey = HDNode.fromBase58(
+  const derivedExternalAddress: utxolib.minHDKey = utxolib.HDNode.fromBase58(
     externalAddress.toJSON().xpriv,
     network,
   );
@@ -146,69 +260,48 @@ function generateNodeIdentityKeypair(
 
 
 
-function generateExternalIdentityKeypair( // in memory we store just address
-  privKey: string,
-): externalIdentity {
-  const typeIndex = 1; // identity index
-  const addressIndex = 0; // identity index
-  const identityKeypair = generateNodeIdentityKeypair(
-    privKey,
-    typeIndex,
-    addressIndex,
-  );
 
-  const pubKeyBuffer = Buffer.from(identityKeypair.pubKey, 'hex');
-  const lib = config.mainnet.libid;
-  const network = networks[lib];
 
-  const genKeypair =    ECPair.fromPublicKeyBuffer(pubKeyBuffer, network);
-  const address = genKeypair.getAddress();
 
-  const externalIdentity = {
-    privKey: identityKeypair.privKey,
-    pubKey: identityKeypair.pubKey,
-    address,
-  };
-  return externalIdentity;
-}
+
+// async function generateCheckValue(phrase: string): Promise<string> {
+//   // Generar la clave privada a partir de la frase
+//   const privkey = mkPrivKey(phrase);
+//   console.log(privkey);
+//   // Generar un hash de la clave privada
+//   const hash = createHash('sha256').update(privkey).digest();
+//   console.log(hash);
+  
+
+//   // Convertir el hash a Uint8Array y truncar a 4 bytes
+//   const truncated = new Uint8Array(hash).slice(0, 4);
+//   console.log(truncated);
+//   const checkValue = Buffer.from(truncated).toString('base64url'); // Asegúrate de tener una función para Base64URL
+
+//   return checkValue;
+// } 
+
 
 // Función para convertir un array de números a una cadena hexadecimal
 function arrayToHex(arr: number[]): string {
-    return arr.map(num => num.toString(16).padStart(2, '0')).join('');
+  return arr.map(num => num.toString(16).padStart(2, '0')).join('');
 }
 
-
-async function generateCheckValue(phrase: string): Promise<string> {
-  // Generar la clave privada a partir de la frase
-  const privkey = mkPrivKey(phrase);
-  console.log(privkey);
-  // Generar un hash de la clave privada
-  const hash = createHash('sha256').update(privkey).digest();
-  console.log(hash);
+// // Función para validar la clave privada
+// async function validatePrivKey(phrase: string, expectedCheckValue: string): Promise<boolean> {
+//   const checkValue = await generateCheckValue(phrase);
   
-
-  // Convertir el hash a Uint8Array y truncar a 4 bytes
-  const truncated = new Uint8Array(hash).slice(0, 4);
-  console.log(truncated);
-  const checkValue = Buffer.from(truncated).toString('base64url'); // Asegúrate de tener una función para Base64URL
-
-  return checkValue;
-} 
-
-// Función para validar la clave privada
-async function validatePrivKey(phrase: string, expectedCheckValue: string): Promise<boolean> {
-  const checkValue = await generateCheckValue(phrase);
-  
-  return checkValue === expectedCheckValue;
-}
+//   return checkValue === expectedCheckValue;
+// }
 
 export {
-  mkPrivKey,
+  // mkPrivKey,
   privKeyToWIF,
   privKeyToPubKey,
   pubKeyToAddr,
-  validatePrivKey,
-  generateCheckValue,
+  // validatePrivKey,
+  // generateCheckValue,
   generateNodeIdentityKeypair,
   generateExternalIdentityKeypair,
+  generatexPubxPriv
 };

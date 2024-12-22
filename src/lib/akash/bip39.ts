@@ -151,9 +151,9 @@ export class Bip39 {
     return mnemonicToEntropy(mnemonic.toString());
   }
   //This function creates a seed from a username + password + pin(salt)
-  public static async mnemonicToSeed(mnemonic: string, salt: string): Promise<Uint8Array> {
+  public static async mnemonicToSeed(mnemonic: string, passphrase?: string): Promise<Uint8Array> {
     const mnemonicBytes = toUtf8(normalize(mnemonic.toString()));
-    const sal = "mnemonic" + salt;
+    const sal = "mnemonic" + passphrase;
     const saltBytes = toUtf8(sal);
     return pbkdf2Sha512(mnemonicBytes, saltBytes, 2048, 64);
   }
