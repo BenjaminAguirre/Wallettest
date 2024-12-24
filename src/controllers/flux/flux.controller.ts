@@ -59,6 +59,8 @@ const fluxTest = async(_req: any, res: any) =>{
 
         const response = await generatexPubxPriv(phrase, 44, 19167)
         const xpriv = response.xpriv;
+        console.log(xpriv);
+        
         const fluxData = await generateAddressKeypair(xpriv,0,19167)
         const accountData = {
             response,
@@ -84,6 +86,8 @@ const FluxId = async(_req: any, res: any) =>{
 }
 
 
+//1HPfRdi9vVXNe6pj2FhNxNuXg5yrZ5v3vm
+
 const auth = async(_req: any, res: any) =>{
     try {
         const username = _req.body.username;
@@ -94,6 +98,7 @@ const auth = async(_req: any, res: any) =>{
         const fluxData = await generateAddressKeypair(xpriv,0,19167)
         const fluxId = await generateExternalIdentityKeypair(xpriv)
         const fluxPriv = fluxData.privKey;
+        console.log(fluxPriv);
         const id = fluxId.privKey;
         const authHeader = await GetZelIdAuthHeader(fluxPriv, id);
         res.status(200).send(authHeader)

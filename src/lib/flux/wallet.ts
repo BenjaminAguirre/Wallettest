@@ -3,7 +3,7 @@ import secp256k1 from 'secp256k1';
 import zcrypto from './crypto';
 // import { createHash } from 'crypto';
 import { Bip39 } from "../akash/bip39";
-import { config } from './config';
+import { config, btc } from './config';
 import utxolib, { minHDKey } from '@runonflux/utxo-lib';
 import { HDKey } from "@scure/bip32";
 
@@ -188,7 +188,7 @@ function pubKeyToAddr(pubKey: any): string {
     return Fluxadress   
 }
 
-
+// given xpub of our party, generate keypair for our SSP Wallet Identity - this is a p2pkh bitcoin address used by thrid parties. SspId (same as FluxID)
 function generateExternalIdentityKeypair( // in memory we store just address
   xpriv: string,
 ): externalIdentity {
@@ -199,15 +199,13 @@ function generateExternalIdentityKeypair( // in memory we store just address
     typeIndex,
     addressIndex,
   );
-  console.log(identityKeypair);
 
   const pubKeyBuffer = Buffer.from(identityKeypair.pubKey, 'hex');
-  const libID = config.mainnet.libid;
+  const libID = btc.libid;
   const network = utxolib.networks[libID];
 
   const genKeypair = utxolib.ECPair.fromPublicKeyBuffer(pubKeyBuffer, network);
   const address = genKeypair.getAddress();
-
   const externalIdentity = {
     privKey: identityKeypair.privKey,
     pubKey: identityKeypair.pubKey,
@@ -217,6 +215,7 @@ function generateExternalIdentityKeypair( // in memory we store just address
 }
 
 
+// given xpriv of our party, generate keypair consisting of privateKey in WIF format and public key belonging to it for Node Identity.. Comprossed
 
 function generateNodeIdentityKeypair(
   xpriv: string,
