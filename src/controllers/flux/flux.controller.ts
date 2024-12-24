@@ -2,8 +2,10 @@ import {
     // privKeyToPubKey,
     // pubKeyToAddr,
     generatexPubxPriv,
-    generateExternalIdentityKeypair
+    generateExternalIdentityKeypair,
+    generateAddressKeypair
 } from "../../lib/flux/wallet";
+import { GetZelIdAuthHeader } from "../../lib/flux/sign";
 
 
 // const createPrivKey = async (_req: any, res: any) =>{
@@ -56,8 +58,13 @@ const fluxTest = async(_req: any, res: any) =>{
         const phrase = username + password;
 
         const response = await generatexPubxPriv(phrase, 44, 19167)
-
-        res.status(200).send(response)
+        const xpriv = response.xpriv;
+        const fluxData = await generateAddressKeypair(xpriv,0,19167)
+        const accountData = {
+            response,
+            fluxData
+        }
+        res.status(200).send(accountData)
 
 
     } catch (error) {
@@ -77,9 +84,29 @@ const FluxId = async(_req: any, res: any) =>{
 }
 
 
+const auth = async(_req: any, res: any) =>{
+    try {
+        const username = _req.body.username;
+        const password = _req.body.password;
+        const phrase = username + password;
+        const response = await generatexPubxPriv(phrase, 44, 19167)
+        const xpriv = response.xpriv;
+        const fluxData = await generateAddressKeypair(xpriv,0,19167)
+        const fluxId = await generateExternalIdentityKeypair(xpriv)
+        const fluxPriv = fluxData.privKey;
+        const id = fluxId.privKey;
+        const authHeader = await GetZelIdAuthHeader(fluxPriv, id);
+        res.status(200).send(authHeader)
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
+
 export{
     // createPrivKey,
     // LogIn,
+    auth,
     fluxTest,
     FluxId
 };

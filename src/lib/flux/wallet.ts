@@ -3,14 +3,12 @@ import secp256k1 from 'secp256k1';
 import zcrypto from './crypto';
 // import { createHash } from 'crypto';
 import { Bip39 } from "../akash/bip39";
-import { config, btc } from './config';
+import { config } from './config';
 import utxolib, { minHDKey } from '@runonflux/utxo-lib';
 import { HDKey } from "@scure/bip32";
-import * as bitcoin from "bitcoinjs-lib"; // Importing bitcoinjs-lib
-import * as bitcoinMessage from "bitcoinjs-message"; // Importing bitcoinjs-message
 
 
-utxolib.
+utxolib
 interface xPrivXpub {
   xpriv: string;
   xpub: string;
@@ -73,7 +71,7 @@ async function generatexPubxPriv(
 }
 
 
-export function generateAddressKeypair(
+function generateAddressKeypair(
   xpriv: string,
   typeIndex: 0 | 1,
   addressIndex: number,
@@ -204,7 +202,7 @@ function generateExternalIdentityKeypair( // in memory we store just address
   console.log(identityKeypair);
 
   const pubKeyBuffer = Buffer.from(identityKeypair.pubKey, 'hex');
-  const libID = btc.libid;
+  const libID = config.mainnet.libid;
   const network = utxolib.networks[libID];
 
   const genKeypair = utxolib.ECPair.fromPublicKeyBuffer(pubKeyBuffer, network);
@@ -225,8 +223,8 @@ function generateNodeIdentityKeypair(
   typeIndex: 11 | 12,
   addressIndex: number,
 ): keyPair {
-  const libID = btc.libid;
-  const bipParams = btc.bip32;
+  const libID = config.mainnet.libid;
+  const bipParams = config.mainnet.bip32;
   const networkBipParams = utxolib.networks[libID].bip32;
   let externalChain;
   let network = utxolib.networks[libID];
@@ -302,6 +300,7 @@ export {
   // validatePrivKey,
   // generateCheckValue,
   generateNodeIdentityKeypair,
+  generateAddressKeypair,
   generateExternalIdentityKeypair,
   generatexPubxPriv
 };
