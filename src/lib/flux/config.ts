@@ -57,4 +57,30 @@ export const btc = {
     maxTxSize: 100000, // 100,000 vbytes
     rbf: true,
   };
+  // src/lib/atom/config.ts
+export const atomConfig = {
+    atom: {
+        id: 'atom',
+        libid: 'tatom',
+        name: 'Cosmos',
+        symbol: 'ATOM',
+        decimals: 6,
+        slip: 118, // BIP44 coin type for Cosmos
+        messagePrefix: '\u0018Cosmos Signed Message:\n',
+        pubKeyHash: 'cosmos', // Prefix for public key hashes
+        scriptHash: 'cosmos', // Prefix for script hashes
+        wif: '80', // Wallet Import Format
+        bip32: {
+            public: 0x0488b21e, // BIP32 public key
+            private: 0x0488ade4, // BIP32 private key
+        },
+        dustLimit: 5000, // Minimum UTXO amount
+        minFeePerByte: 1, // Minimum fee per byte
+        feePerByte: 1000, // Fee per byte
+        maxMessage: 256, // Maximum message size
+        maxTxSize: 200000, // Maximum transaction size
+        rbf: false, // Replace-By-Fee
+        txExpiryHeight: 100, // Transaction expiry height
+    }
+};
   

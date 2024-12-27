@@ -15,7 +15,7 @@ import { SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { AccountData, DirectSignResponse, OfflineDirectSigner } from "./signer";
 import { makeSignBytes } from "./signing";
 
-import { Bip39 } from "./bip39";
+import { Bip39 } from "../bip39";
 // import { EnglishMnemonic } from "./bip39";
 
 interface AccountDataWithPrivkey extends AccountData {

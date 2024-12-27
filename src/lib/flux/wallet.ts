@@ -1,9 +1,8 @@
 import bs58check from 'bs58check';
-import secp256k1 from 'secp256k1';
 import zcrypto from './crypto';
 // import { createHash } from 'crypto';
-import { Bip39 } from "../akash/bip39";
-import { config, btc } from './config';
+import { Bip39 } from "../bip39";
+import { config, btc, atomConfig } from './config';
 import utxolib, { minHDKey } from '@runonflux/utxo-lib';
 import { HDKey } from "@scure/bip32";
 
@@ -13,6 +12,7 @@ interface xPrivXpub {
   xpriv: string;
   xpub: string;
 }
+
 
 interface externalIdentity {
   privKey: string;
@@ -39,15 +39,6 @@ function getScriptType(type: string): number {
       return 0;
   }
 }
-/*
- * Makes a private key
- * @param {String} phrase (Password phrase)
- * @return {Sting} Private key
- */
-// function mkPrivKey(phrase: String) {
-    
-//   return zcrypto.sha256(Buffer.from(phrase, 'utf-8'));
-// }
 
 
 async function generatexPubxPriv(
@@ -56,13 +47,24 @@ async function generatexPubxPriv(
   coin: number,
   account = 0,
   type = 'p2sh',
+  chain: string,
 ): Promise<xPrivXpub> {
-  const flux = config.mainnet;
+
+  let chainData;
+  
+  if (chain === "atom") {
+    chainData = atomConfig.atom;
+  } else if (chain === "flux") {
+    chainData = config.mainnet;
+  } else {
+    throw new Error("Invalid chain specified");
+  }
+
   const scriptType = getScriptType(type);
 
   const seed = await Bip39.mnemonicToSeed(mnemonic);
-  const bipParams = flux.bip32;
-  const masterKey =  HDKey.fromMasterSeed(seed, bipParams);
+  const bipParams = chainData.bip32;
+  const masterKey = HDKey.fromMasterSeed(seed, bipParams);
   console.log(masterKey);
   const externalChain = masterKey.derive(
     `m/${bip}'/${coin}'/${account}'/${scriptType}'`,
@@ -76,9 +78,8 @@ function generateAddressKeypair(
   typeIndex: 0 | 1,
   addressIndex: number,
 ): keyPair {
-  const chain = config.mainnet
-  const libID = chain.libid;
-  const bipParams = chain.bip32;
+  const libID = config.mainnet.libid;
+  const bipParams = config.mainnet.bip32;
   const networkBipParams = utxolib.networks[libID].bip32;
   let externalChain;
   let network = utxolib.networks[libID];
@@ -111,6 +112,7 @@ function generateAddressKeypair(
   return { privKey: privateKeyWIF, pubKey: publicKey };
 }
 
+
 /*
  * Converts a private key to WIF format
  * @param {String} privKey (private key)
@@ -132,13 +134,13 @@ function privKeyToWIF(privKey: String, toCompressed?: boolean): string {
  * @param {boolean} toCompressed (Convert to public key compressed key or nah)
  * @return {Sting} Public Key (default: uncompressed)
  */
-function privKeyToPubKey(privKey: String, toCompressed?: boolean): string {
-    toCompressed = toCompressed || false; // Si no se proporciona toCompressed, se establece en false
+// function privKeyToPubKey(privKey: String, toCompressed?: boolean): string {
+//     toCompressed = toCompressed || false; // Si no se proporciona toCompressed, se establece en false
   
-    const pkBuffer = Buffer.from(privKey, 'hex'); // Convierte la clave privada de formato hexadecimal a un buffer
-    var publicKey = secp256k1.publicKeyCreate(pkBuffer, toCompressed); // Crea la clave pública a partir del buffer de la clave privada
-    return Buffer.from(publicKey).toString('hex'); // Convierte a string hexadecimal antes de devolver
-  }
+//     const pkBuffer = Buffer.from(privKey, 'hex'); // Convierte la clave privada de formato hexadecimal a un buffer
+//     var publicKey = secp256k1.publicKeyCreate(pkBuffer, toCompressed); // Crea la clave pública a partir del buffer de la clave privada
+//     return Buffer.from(publicKey).toString('hex'); // Convierte a string hexadecimal antes de devolver
+//   }
 
 /*
  * Converts public key to zelcash address
@@ -213,6 +215,9 @@ function generateExternalIdentityKeypair( // in memory we store just address
   };
   return externalIdentity;
 }
+
+
+
 
 
 // given xpriv of our party, generate keypair consisting of privateKey in WIF format and public key belonging to it for Node Identity.. Comprossed
@@ -292,10 +297,10 @@ function arrayToHex(arr: number[]): string {
 // }
 
 export {
-  // mkPrivKey,
   privKeyToWIF,
-  privKeyToPubKey,
+  // privKeyToPubKey,
   pubKeyToAddr,
+  // generateAddressKeypairAkash,
   // validatePrivKey,
   // generateCheckValue,
   generateNodeIdentityKeypair,

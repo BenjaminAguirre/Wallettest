@@ -71,17 +71,16 @@ export async function GetZelIdAuthHeader(privateKey: string, id: string): Promis
     }
 
     const privKey = privateKey;
-    console.log(privKey);
     if (!privKey) {
       return "Error: FLUX_ID_PRIVATE_KEY not found in environment";
     }
 
     // Get flux URL from env
-    const FLUX_API_URL = process.env.FLUX_API_URL;
-    console.log(FLUX_API_URL);
-    if (!FLUX_API_URL) {
-      return "Error: FLUX_API_URL not found in environment variables";
-    }
+    // const FLUX_API_URL = process.env.FLUX_API_URL;
+    // console.log(FLUX_API_URL);
+    // if (!FLUX_API_URL) {
+    //   return "Error: FLUX_API_URL not found in environment variables";
+    // }
 
     // Fetch the login phrase from the API
     const loginPhraseResponse = await axios.get(
