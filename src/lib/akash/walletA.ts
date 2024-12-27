@@ -3,13 +3,9 @@ import zcrypto from '../flux/crypto';
 import { bech32 } from 'bech32';
 import secp256k1 from 'secp256k1';
 import * as crypto from 'crypto';
+import { AkashKeyPair } from '../../types/crypto';
 
 // Tipos para la función
-interface AkashKeyPair {
-  privKey: string;
-  pubKey: string;
-  address: string;
-}
 
 function generateAkashKeypair(
   xpriv: string,
@@ -33,7 +29,7 @@ function generateAkashKeypair(
 
     // Convertir clave privada al formato WIF si es necesario
     const privateKeyHex = derivedPrivateKey.privateKey.toString('hex');
-    
+
     // Clave pública en formato hexadecimal
     const publicKeyHex = pubKeyBuffer.toString('hex');
 

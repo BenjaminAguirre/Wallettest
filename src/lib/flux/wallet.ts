@@ -2,28 +2,10 @@ import bs58check from 'bs58check';
 import zcrypto from './crypto';
 // import { createHash } from 'crypto';
 import { Bip39 } from "../bip39";
-import { config, btc, atomConfig } from './config';
+import { config, btc } from './config';
 import utxolib, { minHDKey } from '@runonflux/utxo-lib';
 import { HDKey } from "@scure/bip32";
-
-
-utxolib
-interface xPrivXpub {
-  xpriv: string;
-  xpub: string;
-}
-
-
-interface externalIdentity {
-  privKey: string;
-  pubKey: string;
-  address: string;
-}
-
-interface keyPair {
-  privKey: string;
-  pubKey: string;
-}
+import {xPrivXpub, externalIdentity, keyPair} from "../../types/crypto"
 
 
 
@@ -47,18 +29,9 @@ async function generatexPubxPriv(
   coin: number,
   account = 0,
   type = 'p2sh',
-  chain: string,
 ): Promise<xPrivXpub> {
 
-  let chainData;
-  
-  if (chain === "atom") {
-    chainData = atomConfig.atom;
-  } else if (chain === "flux") {
-    chainData = config.mainnet;
-  } else {
-    throw new Error("Invalid chain specified");
-  }
+  const chainData = config.mainnet;
 
   const scriptType = getScriptType(type);
 
@@ -136,7 +109,7 @@ function privKeyToWIF(privKey: String, toCompressed?: boolean): string {
  */
 // function privKeyToPubKey(privKey: String, toCompressed?: boolean): string {
 //     toCompressed = toCompressed || false; // Si no se proporciona toCompressed, se establece en false
-  
+
 //     const pkBuffer = Buffer.from(privKey, 'hex'); // Convierte la clave privada de formato hexadecimal a un buffer
 //     var publicKey = secp256k1.publicKeyCreate(pkBuffer, toCompressed); // Crea la clave pública a partir del buffer de la clave privada
 //     return Buffer.from(publicKey).toString('hex'); // Convierte a string hexadecimal antes de devolver
@@ -151,43 +124,43 @@ function privKeyToWIF(privKey: String, toCompressed?: boolean): string {
 
 
 function pubKeyToAddr(pubKey: any): string {
-    // Si no se proporciona pubKeyHash, se utiliza el valor por defecto de config.mainnet.pubKeyHash
-    const pubKeyHash = config.mainnet.pubKeyHash;
-  
+  // Si no se proporciona pubKeyHash, se utiliza el valor por defecto de config.mainnet.pubKeyHash
+  const pubKeyHash = config.mainnet.pubKeyHash;
 
-    // Si pubKey es un string que representa un array, conviértelo a un array de números
-    // if (typeof pubKey === 'string') {
-    //     pubKey = pubKey.split(',').map(Number);
-    // }
-    
 
-    // Si pubKey es un array, conviértelo a una cadena hexadecimal
-    if (Array.isArray(pubKey)) {
-        pubKey = arrayToHex(pubKey);
-    }
+  // Si pubKey es un string que representa un array, conviértelo a un array de números
+  // if (typeof pubKey === 'string') {
+  //     pubKey = pubKey.split(',').map(Number);
+  // }
 
-    // Verifica si pubKey es una cadena válida
-    if (typeof pubKey !== 'string' || pubKey.trim() === '') {
-        throw new Error('Invalid pubKey: pubKey must be a non-empty string.');
-    }
 
-    // Ensure pubKey is a valid string or array
-    if (typeof pubKey !== 'string' && !Array.isArray(pubKey)) {
-        throw new Error('Invalid pubKey: pubKey must be a string or an array of numbers.');
-    }
+  // Si pubKey es un array, conviértelo a una cadena hexadecimal
+  if (Array.isArray(pubKey)) {
+    pubKey = arrayToHex(pubKey);
+  }
 
-    const buffer = Buffer.from(pubKey, "hex");
+  // Verifica si pubKey es una cadena válida
+  if (typeof pubKey !== 'string' || pubKey.trim() === '') {
+    throw new Error('Invalid pubKey: pubKey must be a non-empty string.');
+  }
 
-    // Verifica si el buffer está vacío
-    if (buffer.length === 0) {
-        throw new Error('Invalid pubKey: Buffer is empty. Please check the input.');
-    }
+  // Ensure pubKey is a valid string or array
+  if (typeof pubKey !== 'string' && !Array.isArray(pubKey)) {
+    throw new Error('Invalid pubKey: pubKey must be a string or an array of numbers.');
+  }
 
-    // Se calcula el hash160 del pubKey, que es una forma de hash que se utiliza comúnmente en criptografía
-    const hash160 = zcrypto.hash160(buffer);
-    const Fluxadress = bs58check.encode(Buffer.from(pubKeyHash + hash160, 'hex'))
-    
-    return Fluxadress   
+  const buffer = Buffer.from(pubKey, "hex");
+
+  // Verifica si el buffer está vacío
+  if (buffer.length === 0) {
+    throw new Error('Invalid pubKey: Buffer is empty. Please check the input.');
+  }
+
+  // Se calcula el hash160 del pubKey, que es una forma de hash que se utiliza comúnmente en criptografía
+  const hash160 = zcrypto.hash160(buffer);
+  const Fluxadress = bs58check.encode(Buffer.from(pubKeyHash + hash160, 'hex'))
+
+  return Fluxadress
 }
 
 // given xpub of our party, generate keypair for our SSP Wallet Identity - this is a p2pkh bitcoin address used by thrid parties. SspId (same as FluxID)
@@ -273,7 +246,7 @@ function generateNodeIdentityKeypair(
 //   // Generar un hash de la clave privada
 //   const hash = createHash('sha256').update(privkey).digest();
 //   console.log(hash);
-  
+
 
 //   // Convertir el hash a Uint8Array y truncar a 4 bytes
 //   const truncated = new Uint8Array(hash).slice(0, 4);
@@ -292,7 +265,7 @@ function arrayToHex(arr: number[]): string {
 // // Función para validar la clave privada
 // async function validatePrivKey(phrase: string, expectedCheckValue: string): Promise<boolean> {
 //   const checkValue = await generateCheckValue(phrase);
-  
+
 //   return checkValue === expectedCheckValue;
 // }
 

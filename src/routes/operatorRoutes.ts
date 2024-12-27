@@ -1,5 +1,5 @@
 import express from "express";
-import { fluxTest, FluxId, ChildKeypair, XprivXpub, akashAccount} from "../controllers/flux/flux.controller";
+import { fluxTest, FluxId, ChildKeypair, XprivXpub, akashAccount} from "../controllers/operatorController";
 
 
 const router = express.Router()
